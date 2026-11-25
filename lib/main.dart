@@ -174,46 +174,7 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Center(
-                  child: Text(
-                    'قواعد الصك والمشاريع — بلوت بحمد',
-                    style: TextStyle(
-                      color: Color(0xFFF7D774),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 14),
-                Text(
-                  '• الصن: الأوراق تصاعدياً (7، 8، 9، J، Q، K، 10، A) وتُضاعف نقاط الجولة ×2.',
-                  style: TextStyle(color: Colors.white, fontSize: 13.5),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '• الحكم: لون الحكم يتفوق على باقي الألوان، والولد (J) أقوى ورق الحكم يليه التسعة (9).',
-                  style: TextStyle(color: Colors.white, fontSize: 13.5),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '• المشاريع: سرا (3 متتالية)، خمسين (4 متتالية)، مئة (5 متتالية أو 4 متشابهة)، أربعمئة (4 شيوخ في الصن)، بلوت (شيخ وبنت الحكم).',
-                  style: TextStyle(color: Colors.white, fontSize: 13.5),
-                ),
-                SizedBox(height: 12),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (ctx) => const _RulesBottomSheetContent(),
     );
   }
 
@@ -564,6 +525,52 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
             style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RulesBottomSheetContent extends StatelessWidget {
+  const _RulesBottomSheetContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Directionality(
+      textDirection: TextDirection.rtl,
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                'قواعد الصك والمشاريع — بلوت بحمد',
+                style: TextStyle(
+                  color: Color(0xFFF7D774),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(height: 14),
+            Text(
+              '• الصن: الأوراق تصاعدياً (7، 8، 9، J، Q، K، 10، A) وتُضاعف نقاط الجولة ×2.',
+              style: TextStyle(color: Colors.white, fontSize: 13.5),
+            ),
+            SizedBox(height: 8),
+            Text(
+              '• الحكم: لون الحكم يتفوق على باقي الألوان، والولد (J) أقوى ورق الحكم يليه التسعة (9).',
+              style: TextStyle(color: Colors.white, fontSize: 13.5),
+            ),
+            SizedBox(height: 8),
+            Text(
+              '• المشاريع: سرا (3 متتالية)، خمسين (4 متتالية)، مئة (5 متتالية أو 4 متشابهة)، أربعمئة (4 شيوخ في الصن)، بلوت (شيخ وبنت الحكم).',
+              style: TextStyle(color: Colors.white, fontSize: 13.5),
+            ),
+            SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }
@@ -2013,310 +2020,4 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     final isBuyer = buyerSeat == seat;
     final shownBacks = min(cardCount, 5);
 
-    final badge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isTurn ? const Color(0xFFE6B84C) : Colors.black45,
-        borderRadius: BorderRadius.circular(11),
-        border: isBuyer
-            ? Border.all(color: Colors.amberAccent, width: 1.5)
-            : null,
-      ),
-      child: Text(
-        '${seatNames[seat]} ($cardCount)',
-        style: TextStyle(
-          color: isTurn ? const Color(0xFF072416) : Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 11,
-        ),
-      ),
-    );
-
-    final miniCards = horizontal
-        ? Row(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(
-              shownBacks,
-              (_) => Container(
-                width: 14,
-                height: 20,
-                margin: const EdgeInsets.symmetric(horizontal: 1),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF145A38),
-                  borderRadius: BorderRadius.circular(3),
-                  border: Border.all(color: const Color(0xFFE6B84C), width: 0.8),
-                ),
-              ),
-            ),
-          )
-        : Column(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(
-              shownBacks,
-              (_) => Container(
-                width: 20,
-                height: 12,
-                margin: const EdgeInsets.symmetric(vertical: 1),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF145A38),
-                  borderRadius: BorderRadius.circular(3),
-                  border: Border.all(color: const Color(0xFFE6B84C), width: 0.8),
-                ),
-              ),
-            ),
-          );
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (bubbleText != null)
-          Container(
-            margin: const EdgeInsets.only(bottom: 3),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              bubbleText,
-              style: const TextStyle(
-                color: Color(0xFF072416),
-                fontSize: 10.5,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        badge,
-        if (shownBacks > 0) ...[
-          const SizedBox(height: 3),
-          miniCards,
-        ],
-      ],
-    );
-  }
-
-  Widget _buildBiddingBar() {
-    final defaultSuit = floorCard?.suit ?? Suit.spades;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      color: Colors.black45,
-      child: bidRound == 1
-          ? Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: [
-                FilledButton.tonal(
-                  onPressed: () => _passBid(0),
-                  child: const Text('بس'),
-                ),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A7348),
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () => _acceptBid(0, GameModeType.hokm, defaultSuit),
-                  child: Text('حكم ${defaultSuit.suitArabic}'),
-                ),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFE6B84C),
-                    foregroundColor: const Color(0xFF072416),
-                  ),
-                  onPressed: () => _acceptBid(0, GameModeType.sun, null),
-                  child: const Text('صن'),
-                ),
-              ],
-            )
-          : Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              alignment: WrapAlignment.center,
-              children: [
-                FilledButton.tonal(
-                  onPressed: () => _passBid(0),
-                  child: const Text('بس'),
-                ),
-                ...Suit.values.map(
-                  (s) => FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A7348),
-                      foregroundColor: Colors.white,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: () => _acceptBid(0, GameModeType.hokm, s),
-                    child: Text('${s.suitSymbol} ${s.suitArabic}'),
-                  ),
-                ),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFE6B84C),
-                    foregroundColor: const Color(0xFF072416),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  onPressed: () => _acceptBid(0, GameModeType.sun, null),
-                  child: const Text('صن'),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildPlayerHand(List<PlayingCard> legalCards) {
-    final myHand = hands[0];
-    final isMyTurn = phase == GamePhase.playing && currentTurn == 0 && !isBusy;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-      color: const Color(0xFF041C10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${seatNames[0]} (${myHand.length} ورقات)${isMyTurn ? " — دورك الآن" : ""}',
-                style: TextStyle(
-                  color: isMyTurn ? const Color(0xFFF7D774) : Colors.white70,
-                  fontSize: 12,
-                  fontWeight: isMyTurn ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              if (seatBubbles[0] != null)
-                Text(
-                  seatBubbles[0]!,
-                  style: const TextStyle(color: Color(0xFFF7D774), fontSize: 12),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: myHand.map((card) {
-                final isLegal = !isMyTurn || legalCards.contains(card);
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                  child: AnimatedSlide(
-                    duration: const Duration(milliseconds: 180),
-                    offset: isMyTurn && isLegal
-                        ? const Offset(0, -0.09)
-                        : Offset.zero,
-                    child: _cardWidget(
-                      card,
-                      enabled: isLegal,
-                      highlighted: isMyTurn && isLegal,
-                      onTap: isMyTurn && isLegal ? () => _playCard(0, card) : null,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _cardWidget(
-    PlayingCard card, {
-    required bool enabled,
-    bool compact = false,
-    bool highlighted = false,
-    VoidCallback? onTap,
-  }) {
-    final width = compact ? 46.0 : 64.0;
-    final height = compact ? 66.0 : 94.0;
-    final color =
-        card.isRed ? const Color(0xFFC62828) : const Color(0xFF141916);
-
-    return Opacity(
-      opacity: enabled ? 1.0 : 0.36,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(11),
-        child: Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFFDF8),
-            borderRadius: BorderRadius.circular(11),
-            border: Border.all(
-              color: highlighted
-                  ? const Color(0xFFE6B84C)
-                  : const Color(0x33000000),
-              width: highlighted ? 2.2 : 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.32),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(4),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(7),
-              border: Border.all(
-                color: color.withValues(alpha: card.isCourtCard ? 0.35 : 0.12),
-                width: 0.8,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      card.rankLabel,
-                      style: TextStyle(
-                        color: color,
-                        fontWeight: FontWeight.w900,
-                        fontSize: compact ? 11 : 14,
-                        height: 1.0,
-                      ),
-                    ),
-                    Text(
-                      card.suitSymbol,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: compact ? 10 : 12,
-                        height: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  card.suitSymbol,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: compact ? 19 : 27,
-                    height: 1.0,
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Text(
-                    card.rankLabel,
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: compact ? 9 : 11,
-                      height: 1.0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+    
