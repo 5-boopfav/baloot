@@ -380,9 +380,9 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                     ),
                     child: Column(
                       children: [
-                        Row(
+                        const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
+                          children: [
                             Text(
                               'تفاعل هذا الأسبوع: 0',
                               style: TextStyle(
@@ -500,7 +500,7 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
   }
 
   void _openFriendsDrawer() {
-    final friends = [
+    const friends = [
       ('الزهراني', 'قبل 3 ساعة', 'متوسط'),
       ('2409BRN2CA', 'قبل 4 ساعة', 'متوسط'),
       ('h917', 'قبل 14 ساعة', 'متوسط'),
@@ -520,9 +520,9 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     Text(
                       'قائمة الأصدقاء • 13/20',
                       style: TextStyle(
@@ -833,15 +833,15 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: const Color(0xFFD5A949)),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.workspace_premium,
                   color: Color(0xFFF7D774),
                   size: 16,
                 ),
-                const SizedBox(width: 4),
-                const Text(
+                SizedBox(width: 4),
+                Text(
                   'إشتراك VIP',
                   style: TextStyle(
                     color: Color(0xFFF7D774),
@@ -980,9 +980,9 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white12),
               ),
-              child: Column(
+              child: const Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: const [
+                children: [
                   _LeaderBadge(rankText: '1', accent: Color(0xFFFFD54F)),
                   _LeaderBadge(rankText: '2', accent: Color(0xFFE0E0E0)),
                   _LeaderBadge(rankText: '3', accent: Color(0xFFBCAAA4)),
@@ -1200,9 +1200,9 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                   ),
                 ),
                 padding: const EdgeInsets.all(10),
-                child: Column(
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(Icons.style_rounded, color: Colors.white, size: 34),
                     SizedBox(height: 4),
                     Text(
@@ -1377,13 +1377,13 @@ class SakkaRoomsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rooms = [
+    const rooms = [
       (
         'مبتدئ',
         '20:score',
         'فوز +3\nخسارة 0',
         'دخول\nأدنى دخول 1000~10000',
-        const Color(0xFF5D9E42),
+        Color(0xFF5D9E42),
         20,
       ),
       (
@@ -1391,7 +1391,7 @@ class SakkaRoomsScreen extends StatelessWidget {
         '50:score',
         'فوز +4\nخسارة 0',
         'دخول\nأدنى دخول 5000~50000',
-        const Color(0xFF2D8F9E),
+        Color(0xFF2D8F9E),
         50,
       ),
       (
@@ -1399,7 +1399,7 @@ class SakkaRoomsScreen extends StatelessWidget {
         '150:score',
         'فوز +6\nخسارة 0',
         'دخول\nأدنى دخول 10000~100000',
-        const Color(0xFF3E68A8),
+        Color(0xFF3E68A8),
         150,
       ),
       (
@@ -1407,7 +1407,7 @@ class SakkaRoomsScreen extends StatelessWidget {
         '1000:score',
         'فوز +8\nخسارة 0',
         'دخول\nأدنى دخول 50000~800000',
-        const Color(0xFFB55A2A),
+        Color(0xFFB55A2A),
         152,
       ),
       (
@@ -1415,7 +1415,7 @@ class SakkaRoomsScreen extends StatelessWidget {
         '3000:score',
         'فوز +10\nخسارة 0',
         'دخول\nأدنى دخول 300000~',
-        const Color(0xFF7D4399),
+        Color(0xFF7D4399),
         152,
       ),
     ];
@@ -1573,14 +1573,14 @@ class SakkaRoomsScreen extends StatelessWidget {
                     },
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
+                const Padding(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 6,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
+                    children: [
                       Text(
                         'رتبتي',
                         style: TextStyle(
@@ -1616,12 +1616,12 @@ class MoreGamesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      ('الجلسات', Icons.chair_alt, const Color(0xFFD99B38)),
-      ('ربح مجاناً', Icons.emoji_events, const Color(0xFFC75B2A)),
-      ('سلم التحدّي', Icons.military_tech, const Color(0xFFD49A2A)),
-      ('دوري المحترفين', Icons.workspace_premium, const Color(0xFF3E6F9E)),
-      ('صكّة سريعة', Icons.style, const Color(0xFF289A63)),
+    const items = [
+      ('الجلسات', Icons.chair_alt, Color(0xFFD99B38)),
+      ('ربح مجاناً', Icons.emoji_events, Color(0xFFC75B2A)),
+      ('سلم التحدّي', Icons.military_tech, Color(0xFFD49A2A)),
+      ('دوري المحترفين', Icons.workspace_premium, Color(0xFF3E6F9E)),
+      ('صكّة سريعة', Icons.style, Color(0xFF289A63)),
     ];
 
     return Directionality(
