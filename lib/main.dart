@@ -158,12 +158,63 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
   final TextEditingController _nameController =
       TextEditingController(text: 'بحمد');
   bool _isConnecting = false;
+  int _selectedTargetScore = 152;
 
   @override
   void dispose() {
     _roomController.dispose();
     _nameController.dispose();
     super.dispose();
+  }
+
+  void _openRulesSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF0A3320),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Center(
+                  child: Text(
+                    'قواعد الصك والمشاريع — بلوت بحمد',
+                    style: TextStyle(
+                      color: Color(0xFFF7D774),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 14),
+                Text(
+                  '• الصن: الأوراق تصاعدياً (7، 8، 9، J، Q، K، 10، A) وتُضاعف نقاط الجولة ×2.',
+                  style: TextStyle(color: Colors.white, fontSize: 13.5),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '• الحكم: لون الحكم يتفوق على باقي الألوان، والولد (J) أقوى ورق الحكم يليه التسعة (9).',
+                  style: TextStyle(color: Colors.white, fontSize: 13.5),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '• المشاريع: سرا (3 متتالية)، خمسين (4 متتالية)، مئة (5 متتالية أو 4 متشابهة)، أربعمئة (4 شيوخ في الصن)، بلوت (شيخ وبنت الحكم).',
+                  style: TextStyle(color: Colors.white, fontSize: 13.5),
+                ),
+                SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _openOnlineRoomSheet() async {
@@ -245,6 +296,7 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
                                   roomCode: code,
                                   playerName: name,
                                   isOnlineMode: true,
+                                  targetScore: _selectedTargetScore,
                                   statusBannerNote: msg,
                                 ),
                               ),
@@ -300,15 +352,15 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF041C10),
-                Color(0xFF0D492D),
+                Color(0xFF03180E),
+                Color(0xFF0B462A),
                 Color(0xFF052113),
               ],
             ),
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -316,24 +368,23 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _topPill(Icons.style_rounded, 'صن • حكم • مشاريع'),
-                      _topPill(
-                        Icons.wifi_tethering,
-                        OnlineRoomService.instance.isFirebaseReady
-                            ? 'أونلاين متصل'
-                            : 'جاهز للعب',
+                      InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: _openRulesSheet,
+                        child: _topPill(Icons.menu_book_rounded, 'القواعد'),
                       ),
                     ],
                   ),
                   Column(
                     children: [
                       Container(
-                        width: 108,
-                        height: 108,
+                        width: 106,
+                        height: 106,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Color(0xFF1A6B44), Color(0xFF0B3722)],
+                            colors: [Color(0xFF1A6B44), Color(0xFF0A3420)],
                           ),
                           shape: BoxShape.circle,
                           border: Border.all(
@@ -342,8 +393,8 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              blurRadius: 20,
+                              color: Colors.black.withValues(alpha: 0.55),
+                              blurRadius: 22,
                               offset: const Offset(0, 8),
                             ),
                           ],
@@ -361,7 +412,7 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
                       const Text(
                         'بلوت بحمد',
                         style: TextStyle(
@@ -372,10 +423,44 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'لعب سريع • مشاريع ومضاعفات • دردشة فورية',
+                        'طاولة رباعية • مشاريع ومضاعفات • دردشة فورية',
                         style: TextStyle(
                           color: Color(0xFFD7EFE2),
-                          fontSize: 13.5,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black38,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [152, 101].map((pts) {
+                            final active = _selectedTargetScore == pts;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 3),
+                              child: ChoiceChip(
+                                label: Text('صك $pts'),
+                                selected: active,
+                                selectedColor: const Color(0xFFE6B84C),
+                                backgroundColor: Colors.transparent,
+                                labelStyle: TextStyle(
+                                  color: active
+                                      ? const Color(0xFF072416)
+                                      : Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                                onSelected: (_) {
+                                  setState(() => _selectedTargetScore = pts);
+                                },
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
                     ],
@@ -396,10 +481,11 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
                           onPressed: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => const BalootTableScreen(
+                                builder: (_) => BalootTableScreen(
                                   modeTitle: 'لعب سريع',
                                   playerName: 'أنت',
                                   isOnlineMode: false,
+                                  targetScore: _selectedTargetScore,
                                 ),
                               ),
                             );
@@ -788,6 +874,7 @@ class BalootTableScreen extends StatefulWidget {
   final String? roomCode;
   final String playerName;
   final bool isOnlineMode;
+  final int targetScore;
   final String? statusBannerNote;
 
   const BalootTableScreen({
@@ -796,6 +883,7 @@ class BalootTableScreen extends StatefulWidget {
     this.roomCode,
     required this.playerName,
     required this.isOnlineMode,
+    this.targetScore = 152,
     this.statusBannerNote,
   });
 
@@ -807,7 +895,6 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
   final Random _rng = Random();
   final TextEditingController _chatController = TextEditingController();
 
-  static const int targetScore = 152;
   static const List<String> quickPhrases = [
     'كفو يا ذيب',
     'العبها صح',
@@ -1047,6 +1134,87 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
           },
         );
       },
+    );
+  }
+
+  void _openMatchSummarySheet() {
+    final projNames = declaredProjects.isEmpty
+        ? 'لا توجد مشاريع معلنة بعد'
+        : declaredProjects
+            .map((p) => '${seatNames[p.seat]}: ${p.arabicName}')
+            .join(' • ');
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF0A3320),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'تفاصيل الصك والجولة الحالية',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFFF7D774),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _summaryRow('هدف الصك', '${widget.targetScore} نقطة'),
+                _summaryRow('نتيجة الصك (لنا / لهم)', '$usMatchScore / $themMatchScore'),
+                _summaryRow('أبناط الجولة (لنا / لهم)', '$usRoundAbnat / $themRoundAbnat'),
+                _summaryRow(
+                  'المشتري',
+                  buyerSeat != null ? seatNames[buyerSeat!] : 'لم يُحدَّد بعد',
+                ),
+                _summaryRow('المضاعفة', '×$doubleMultiplier'),
+                const SizedBox(height: 10),
+                const Text(
+                  'المشاريع المعلنة:',
+                  style: TextStyle(
+                    color: Color(0xFFF7D774),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  projNames,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+                const SizedBox(height: 14),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _summaryRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white70)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1512,9 +1680,10 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     usMatchScore += usAdded;
     themMatchScore += themAdded;
 
-    if (usMatchScore >= targetScore || themMatchScore >= targetScore) {
+    if (usMatchScore >= widget.targetScore ||
+        themMatchScore >= widget.targetScore) {
       phase = GamePhase.matchEnd;
-      statusMessage = usMatchScore >= targetScore
+      statusMessage = usMatchScore >= widget.targetScore
           ? 'مبروك! فريقكم كسب الصك في بلوت بحمد ($usMatchScore مقابل $themMatchScore)'
           : 'انتهى الصك بفوز الخصم ($themMatchScore مقابل $usMatchScore)';
     } else {
@@ -1545,9 +1714,9 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF093620),
+        backgroundColor: const Color(0xFF08321D),
         appBar: AppBar(
-          backgroundColor: const Color(0xFF052013),
+          backgroundColor: const Color(0xFF041C10),
           foregroundColor: Colors.white,
           title: Row(
             children: [
@@ -1558,7 +1727,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  '• ${widget.modeTitle}',
+                  '• ${widget.modeTitle} (${widget.targetScore})',
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Color(0xFFE6B84C), fontSize: 12),
                 ),
@@ -1566,6 +1735,11 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
             ],
           ),
           actions: [
+            IconButton(
+              tooltip: 'تفاصيل الصك',
+              onPressed: _openMatchSummarySheet,
+              icon: const Icon(Icons.analytics_outlined),
+            ),
             IconButton(
               tooltip: 'الدردشة',
               onPressed: _openChatSheet,
@@ -1630,6 +1804,10 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFE6B84C),
+                    foregroundColor: const Color(0xFF072416),
+                  ),
                   onPressed: () => _startNewRound(resetMatch: false),
                   child: const Text('الجولة التالية'),
                 ),
@@ -1638,6 +1816,10 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFE6B84C),
+                    foregroundColor: const Color(0xFF072416),
+                  ),
                   onPressed: () => _startNewRound(resetMatch: true),
                   child: const Text('بدء صك جديد'),
                 ),
@@ -1658,7 +1840,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
             : 'حكم ${hokmSuit?.suitSymbol ?? ''} (${hokmSuit?.suitArabic ?? ''})$multSuffix';
 
     return Container(
-      color: const Color(0xFF072A19),
+      color: const Color(0xFF062516),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1720,33 +1902,33 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     final bottomPlayed = _playedForSeat(0);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _seatWithBubble(2, hands[2].length),
+          _seatWithMiniBacks(2, hands[2].length, horizontal: true),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _seatWithBubble(3, hands[3].length),
+                _seatWithMiniBacks(3, hands[3].length, horizontal: false),
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                     decoration: BoxDecoration(
                       gradient: const RadialGradient(
-                        colors: [Color(0xFF1B7247), Color(0xFF0C4127)],
+                        colors: [Color(0xFF1D7A4C), Color(0xFF0A3A22)],
                       ),
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(32),
                       border: Border.all(
                         color: const Color(0xFFE6B84C),
-                        width: 1.6,
+                        width: 1.8,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.38),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
+                          color: Colors.black.withValues(alpha: 0.42),
+                          blurRadius: 16,
+                          offset: const Offset(0, 7),
                         ),
                       ],
                     ),
@@ -1796,7 +1978,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
                           ),
                   ),
                 ),
-                _seatWithBubble(1, hands[1].length),
+                _seatWithMiniBacks(1, hands[1].length, horizontal: false),
               ],
             ),
           ),
@@ -1808,9 +1990,9 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
               InkWell(
-                onTap: _openChatSheet,
+                onTap: _openMatchSummarySheet,
                 child: const Text(
-                  'دردشة 💬',
+                  'تفاصيل الصك 📊',
                   style: TextStyle(
                     color: Color(0xFFF7D774),
                     fontSize: 12,
@@ -1825,18 +2007,72 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     );
   }
 
-  Widget _seatWithBubble(int seat, int cardCount) {
+  Widget _seatWithMiniBacks(int seat, int cardCount, {required bool horizontal}) {
     final isTurn = currentTurn == seat;
     final bubbleText = seatBubbles[seat];
     final isBuyer = buyerSeat == seat;
+    final shownBacks = min(cardCount, 5);
+
+    final badge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isTurn ? const Color(0xFFE6B84C) : Colors.black45,
+        borderRadius: BorderRadius.circular(11),
+        border: isBuyer
+            ? Border.all(color: Colors.amberAccent, width: 1.5)
+            : null,
+      ),
+      child: Text(
+        '${seatNames[seat]} ($cardCount)',
+        style: TextStyle(
+          color: isTurn ? const Color(0xFF072416) : Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+        ),
+      ),
+    );
+
+    final miniCards = horizontal
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(
+              shownBacks,
+              (_) => Container(
+                width: 14,
+                height: 20,
+                margin: const EdgeInsets.symmetric(horizontal: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF145A38),
+                  borderRadius: BorderRadius.circular(3),
+                  border: Border.all(color: const Color(0xFFE6B84C), width: 0.8),
+                ),
+              ),
+            ),
+          )
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(
+              shownBacks,
+              (_) => Container(
+                width: 20,
+                height: 12,
+                margin: const EdgeInsets.symmetric(vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF145A38),
+                  borderRadius: BorderRadius.circular(3),
+                  border: Border.all(color: const Color(0xFFE6B84C), width: 0.8),
+                ),
+              ),
+            ),
+          );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (bubbleText != null)
           Container(
-            margin: const EdgeInsets.only(bottom: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            margin: const EdgeInsets.only(bottom: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1845,29 +2081,16 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
               bubbleText,
               style: const TextStyle(
                 color: Color(0xFF072416),
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-          decoration: BoxDecoration(
-            color: isTurn ? const Color(0xFFE6B84C) : Colors.black45,
-            borderRadius: BorderRadius.circular(12),
-            border: isBuyer
-                ? Border.all(color: Colors.amberAccent, width: 1.5)
-                : null,
-          ),
-          child: Text(
-            '${seatNames[seat]} ($cardCount)',
-            style: TextStyle(
-              color: isTurn ? const Color(0xFF072416) : Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 11.5,
-            ),
-          ),
-        ),
+        badge,
+        if (shownBacks > 0) ...[
+          const SizedBox(height: 3),
+          miniCards,
+        ],
       ],
     );
   }
@@ -1946,7 +2169,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-      color: const Color(0xFF052013),
+      color: const Color(0xFF041C10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1954,7 +2177,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${seatNames[0]}${isMyTurn ? " — دورك الآن" : ""}',
+                '${seatNames[0]} (${myHand.length} ورقات)${isMyTurn ? " — دورك الآن" : ""}',
                 style: TextStyle(
                   color: isMyTurn ? const Color(0xFFF7D774) : Colors.white70,
                   fontSize: 12,
@@ -1975,11 +2198,11 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
               children: myHand.map((card) {
                 final isLegal = !isMyTurn || legalCards.contains(card);
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
                   child: AnimatedSlide(
                     duration: const Duration(milliseconds: 180),
                     offset: isMyTurn && isLegal
-                        ? const Offset(0, -0.08)
+                        ? const Offset(0, -0.09)
                         : Offset.zero,
                     child: _cardWidget(
                       card,
@@ -2004,13 +2227,13 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     bool highlighted = false,
     VoidCallback? onTap,
   }) {
-    final width = compact ? 46.0 : 62.0;
-    final height = compact ? 66.0 : 90.0;
+    final width = compact ? 46.0 : 64.0;
+    final height = compact ? 66.0 : 94.0;
     final color =
         card.isRed ? const Color(0xFFC62828) : const Color(0xFF141916);
 
     return Opacity(
-      opacity: enabled ? 1.0 : 0.38,
+      opacity: enabled ? 1.0 : 0.36,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(11),
@@ -2024,11 +2247,11 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
               color: highlighted
                   ? const Color(0xFFE6B84C)
                   : const Color(0x33000000),
-              width: highlighted ? 2.0 : 1.0,
+              width: highlighted ? 2.2 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.30),
+                color: Colors.black.withValues(alpha: 0.32),
                 blurRadius: 6,
                 offset: const Offset(0, 3),
               ),
@@ -2073,7 +2296,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
                   card.suitSymbol,
                   style: TextStyle(
                     color: color,
-                    fontSize: compact ? 19 : 26,
+                    fontSize: compact ? 19 : 27,
                     height: 1.0,
                   ),
                 ),
