@@ -45,11 +45,8 @@ class OnlineRoomService {
     }
   }
 
-  DocumentReference> roomDoc(String roomCode) {
-    return FirebaseFirestore.instance
-        .collection('baloot_rooms')
-        .doc(roomCode.trim().toUpperCase());
-  }
+  CollectionReference get _roomsCollection =>
+      FirebaseFirestore.instance.collection('baloot_rooms');
 
   Future<String> createOrJoinRoom(String roomCode, String playerName) async {
     final cleanCode = roomCode.trim().toUpperCase();
@@ -61,7 +58,7 @@ class OnlineRoomService {
     }
 
     final cleanName = playerName.trim().isEmpty ? 'أنت' : playerName.trim();
-    final ref = roomDoc(cleanCode);
+    final ref = _roomsCollection.doc(cleanCode);
     final snap = await ref.get();
 
     if (!snap.exists) {
@@ -97,7 +94,7 @@ class OnlineRoomService {
     final cleanCode = roomCode.trim().toUpperCase();
     if (cleanCode.isEmpty) return;
 
-    await roomDoc(cleanCode).update({
+    await _roomsCollection.doc(cleanCode).update({
       'messages': FieldValue.arrayUnion([
         {
           'sender': sender,
@@ -108,6 +105,31 @@ class OnlineRoomService {
     });
   }
 
+  Future<List<ChatMessageItem>> fetchRoomMessages(String roomCode) async {
+    if (!isFirebaseReady) return const [];
+    final cleanCode = roomCode.trim().toUpperCase();
+    if (cleanCode.isEmpty) return const [];
+
+    final snap = await _roomsCollection.doc(cleanCode).get();
+    final data = snap.data() as Map<String, dynamic>?;
+    final rawMsgs = data?['messages'];
+    if (rawMsgs is! List) return const [];
+
+    final parsed = <ChatMessageItem>[];
+    for (final entry in rawMsgs) {
+      if (entry is Map) {
+        parsed.add(
+          ChatMessageItem(
+            sender: (entry['sender'] ?? 'لاعب').toString(),
+            text: (entry['text'] ?? '').toString(),
+            isQuickCall: entry['isQuickCall'] == true,
+          ),
+        );
+      }
+    }
+    return parsed;
+  }
+
   Future<void> syncRoomStatus({
     required String roomCode,
     required String statusText,
@@ -115,7 +137,9 @@ class OnlineRoomService {
     if (!isFirebaseReady) return;
     final cleanCode = roomCode.trim().toUpperCase();
     if (cleanCode.isEmpty) return;
-    await roomDoc(cleanCode).set({'lastStatus': statusText}, SetOptions(merge: true));
+    await _roomsCollection
+        .doc(cleanCode)
+        .set({'lastStatus': statusText}, SetOptions(merge: true));
   }
 }
 
@@ -459,6 +483,34 @@ class _BalootHomeScreenState extends State<BalootHomeScreen> {
 
 enum Suit { spades, hearts, clubs, diamonds }
 
+extension SuitDisplay on Suit {
+  String get suitSymbol {
+    switch (this) {
+      case Suit.spades:
+        return '♠';
+      case Suit.hearts:
+        return '♥';
+      case Suit.clubs:
+        return '♣';
+      case Suit.diamonds:
+        return '♦';
+    }
+  }
+
+  String get suitArabic {
+    switch (this) {
+      case Suit.spades:
+        return 'سباتي';
+      case Suit.hearts:
+        return 'هاص';
+      case Suit.clubs:
+        return 'سبيت';
+      case Suit.diamonds:
+        return 'ديمن';
+    }
+  }
+}
+
 enum Rank { seven, eight, nine, ten, jack, queen, king, ace }
 
 enum GameModeType { none, sun, hokm }
@@ -533,31 +585,9 @@ class PlayingCard {
 
   const PlayingCard({required this.suit, required this.rank});
 
-  String get suitSymbol {
-    switch (suit) {
-      case Suit.spades:
-        return '♠';
-      case Suit.hearts:
-        return '♥';
-      case Suit.clubs:
-        return '♣';
-      case Suit.diamonds:
-        return '♦';
-    }
-  }
+  String get suitSymbol => suit.suitSymbol;
 
-  String get suitArabic {
-    switch (suit) {
-      case Suit.spades:
-        return 'سباتي';
-      case Suit.hearts:
-        return 'هاص';
-      case Suit.clubs:
-        return 'سبيت';
-      case Suit.diamonds:
-        return 'ديمن';
-    }
-  }
+  String get suitArabic => suit.suitArabic;
 
   bool get isRed => suit == Suit.hearts || suit == Suit.diamonds;
 
@@ -788,7 +818,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
   late List<String> seatNames;
   List<String?> seatBubbles = [null, null, null, null];
   List<ChatMessageItem> chatLog = [];
-  StreamSubscription<DocumentSnapshot>>? _roomSub;
+  Timer? _roomPollTimer;
 
   GamePhase phase = GamePhase.bidding;
   GameModeType mode = GameModeType.none;
@@ -835,46 +865,31 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     if (widget.isOnlineMode &&
         widget.roomCode != null &&
         OnlineRoomService.instance.isFirebaseReady) {
-      _subscribeRoomStream(widget.roomCode!);
+      _startRoomPolling(widget.roomCode!);
     }
     _startNewRound(resetMatch: true);
   }
 
-  void _subscribeRoomStream(String code) {
-    _roomSub = OnlineRoomService.instance.roomDoc(code).snapshots().listen((snap) {
-      if (!mounted || !snap.exists) return;
-      final data = snap.data();
-      if (data == null) return;
-      final rawMsgs = data['messages'];
-      if (rawMsgs is List) {
-        final parsed = <ChatMessageItem>[];
-        for (final entry in rawMsgs) {
-          if (entry is Map) {
-            parsed.add(
-              ChatMessageItem(
-                sender: (entry['sender'] ?? 'لاعب').toString(),
-                text: (entry['text'] ?? '').toString(),
-                isQuickCall: entry['isQuickCall'] == true,
-              ),
-            );
-          }
-        }
-        if (parsed.isNotEmpty) {
-          final latest = parsed.last;
-          if (latest.sender != seatNames[0]) {
-            _setSeatBubble(2, latest.text);
-          }
-          setState(() {
-            chatLog = parsed;
-          });
-        }
+  void _startRoomPolling(String code) {
+    _roomPollTimer?.cancel();
+    _roomPollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      if (!mounted) return;
+      final msgs = await OnlineRoomService.instance.fetchRoomMessages(code);
+      if (!mounted || msgs.isEmpty) return;
+      final latest = msgs.last;
+      if (latest.sender != seatNames[0] &&
+          (chatLog.isEmpty || chatLog.last.text != latest.text)) {
+        _setSeatBubble(2, latest.text);
       }
+      setState(() {
+        chatLog = msgs;
+      });
     });
   }
 
   @override
   void dispose() {
-    _roomSub?.cancel();
+    _roomPollTimer?.cancel();
     _chatController.dispose();
     super.dispose();
   }
@@ -1247,11 +1262,11 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
         .where((c) => c.suit == hokmCandidate)
         .fold<int>(
           0,
-          (sum, c) => sum + c.abnatPoints(GameModeType.hokm, hokmCandidate),
+          (acc, c) => acc + c.abnatPoints(GameModeType.hokm, hokmCandidate),
         );
     final sunPower = hand.fold<int>(
       0,
-      (sum, c) => sum + c.abnatPoints(GameModeType.sun, null),
+      (acc, c) => acc + c.abnatPoints(GameModeType.sun, null),
     );
 
     if (sunPower >= 24 && mode == GameModeType.none) {
@@ -1414,7 +1429,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
     lastTrickWinner = winner.seat;
     final trickPoints = trick.fold<int>(
       0,
-      (sum, p) => sum + p.card.abnatPoints(mode, hokmSuit),
+      (acc, p) => acc + p.card.abnatPoints(mode, hokmSuit),
     );
     final isLastTrick = hands.every((h) => h.isEmpty);
     final totalTrickPoints = trickPoints + (isLastTrick ? 10 : 0);
@@ -1476,7 +1491,7 @@ class _BalootTableScreenState extends State<BalootTableScreen> {
       if (topIsUs == forUsTeam) {
         final sameTeamPoints = competitive
             .where((x) => (x.seat == 0 || x.seat == 2) == topIsUs)
-            .fold<int>(0, (sum, x) => sum + x.pointsForMode(mode));
+            .fold<int>(0, (acc, x) => acc + x.pointsForMode(mode));
         directBonus += sameTeamPoints;
       }
     }
