@@ -4306,3 +4306,9 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
