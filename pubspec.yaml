@@ -1,0 +1,23 @@
+name: baloot_bahmad
+description: بلوت بحمد — لعبة بلوت أندرويد مبنية بـ Flutter عبر GitHub Actions.
+publish_to: 'none'
+version: 0.2.0+2
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  audioplayers: ^6.1.0
+  firebase_core: ^3.8.0
+  cloud_firestore: ^5.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
