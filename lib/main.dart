@@ -135,6 +135,164 @@ class ChatMessageItem {
   });
 }
 
+class MajlisScenePainter extends CustomPainter {
+  const MajlisScenePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final wallPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFFB59A76),
+          Color(0xFF947753),
+          Color(0xFF6B5032),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), wallPaint);
+
+    final lampGlow = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFFE6A3).withValues(alpha: 0.34),
+          const Color(0xFFFFE6A3).withValues(alpha: 0.0),
+        ],
+      ).createShader(
+        Rect.fromCircle(
+          center: Offset(size.width * 0.5, size.height * 0.14),
+          radius: size.width * 0.36,
+        ),
+      );
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.14),
+      size.width * 0.36,
+      lampGlow,
+    );
+
+    final floorPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF8C6B46), Color(0xFF5A3F23)],
+      ).createShader(
+        Rect.fromLTWH(0, size.height * 0.62, size.width, size.height * 0.38),
+      );
+    canvas.drawRect(
+      Rect.fromLTWH(0, size.height * 0.62, size.width, size.height * 0.38),
+      floorPaint,
+    );
+
+    final rugPaint = Paint()..color = const Color(0xFFC7A87C);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.24,
+          size.height * 0.65,
+          size.width * 0.52,
+          size.height * 0.27,
+        ),
+        const Radius.circular(14),
+      ),
+      rugPaint,
+    );
+
+    final sofaPaint = Paint()..color = const Color(0xFF7B5A38);
+    final cushionPaint = Paint()..color = const Color(0xFF9A7750);
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.16,
+          size.height * 0.44,
+          size.width * 0.11,
+          size.height * 0.24,
+        ),
+        const Radius.circular(10),
+      ),
+      sofaPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.18,
+          size.height * 0.47,
+          size.width * 0.07,
+          size.height * 0.17,
+        ),
+        const Radius.circular(8),
+      ),
+      cushionPaint,
+    );
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.73,
+          size.height * 0.44,
+          size.width * 0.11,
+          size.height * 0.24,
+        ),
+        const Radius.circular(10),
+      ),
+      sofaPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.75,
+          size.height * 0.47,
+          size.width * 0.07,
+          size.height * 0.17,
+        ),
+        const Radius.circular(8),
+      ),
+      cushionPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class TimerRingPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  const TimerRingPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (min(size.width, size.height) / 2) - 2.2;
+
+    final bgPaint = Paint()
+      ..color = Colors.black38
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2;
+    canvas.drawCircle(center, radius, bgPaint);
+
+    final fgPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.4
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      2 * pi * progress.clamp(0.0, 1.0),
+      false,
+      fgPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant TimerRingPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
+  }
+}
+
 class LobbyMajlisScreen extends StatefulWidget {
   const LobbyMajlisScreen({super.key});
 
@@ -146,8 +304,35 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
   String playerName = 'محمد';
   int playerLevel = 3;
   int goldBalance = 16514;
+  bool isVip = false;
+  String? clubName;
+  int ammoCount = 23;
+  int weeklyInteraction = 0;
+  int dailyInteraction = 0;
   int tickerIndex = 0;
   Timer? _tickerTimer;
+
+  bool oldSound = true;
+  bool musicOn = false;
+  bool sRewardOn = true;
+
+  final List<String> friendsList = [
+    'الزهراني',
+    '2409BRN2CA',
+    'h917',
+    'iPhone13,2',
+  ];
+  final List<String> followingList = ['المحماد..', 'عز'];
+  final List<String> followersList = ['أبو سعد', 'رياض'];
+  final List<String> mailItems = [
+    'هدية تسجيل الدخول اليومي: 500 ذهب',
+    'مكافأة فعالية ليلة الكشتة: 1200 ذهب',
+  ];
+  final List<String> transferHistory = [];
+
+  final List<bool> taskDone = [true, true, false, false];
+  final List<bool> taskClaimed = [false, false, false, false];
+  final List<bool> kashtaClaimed = [false, false, false];
 
   static const List<String> eventTickerItems = [
     '[عساك سالم]',
@@ -175,6 +360,203 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
     super.dispose();
   }
 
+  void _showNotice(String msg) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, textDirection: TextDirection.rtl),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _openProfileEditDialog() {
+    final ctrl = TextEditingController(text: playerName);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFFF6EBD2),
+            title: const Text('ملف اللاعب'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('المستوى: $playerLevel • الذهب: $goldBalance'),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: ctrl,
+                  decoration: const InputDecoration(
+                    labelText: 'تغيير الاسم',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('إلغاء'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final n = ctrl.text.trim();
+                  if (n.isNotEmpty) {
+                    setState(() => playerName = n);
+                    _showNotice('تم تحديث الاسم إلى $n');
+                  }
+                  Navigator.of(ctx).pop();
+                },
+                child: const Text('حفظ'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _openVipDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFFF6EBD2),
+            title: const Text('إشتراك VIP'),
+            content: Text(
+              isVip
+                  ? 'اشتراك VIP مفعّل حالياً على حسابك ($playerName).'
+                  : 'تفعيل اشتراك VIP يمنحك خصم 15% على الإهداء وشارة مميزة مقابل 1000 ذهب.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('إغلاق'),
+              ),
+              if (!isVip)
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFD5A949),
+                    foregroundColor: Colors.black,
+                  ),
+                  onPressed: () {
+                    if (goldBalance >= 1000) {
+                      setState(() {
+                        goldBalance -= 1000;
+                        isVip = true;
+                        playerLevel++;
+                      });
+                      _showNotice('تم تفعيل VIP بنجاح');
+                    } else {
+                      _showNotice('رصيد الذهب غير كافٍ');
+                    }
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('تفعيل (1000)'),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _openClubDialog() {
+    final ctrl = TextEditingController(text: clubName ?? '');
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFFF6EBD2),
+            title: Text(clubName == null ? 'الانضمام لنادٍ' : 'نادي: $clubName'),
+            content: TextField(
+              controller: ctrl,
+              decoration: const InputDecoration(
+                hintText: 'اكتب اسم النادي للانضمام أو الإنشاء',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              if (clubName != null)
+                TextButton(
+                  onPressed: () {
+                    setState(() => clubName = null);
+                    _showNotice('تمت مغادرة النادي');
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('مغادرة'),
+                ),
+              FilledButton(
+                onPressed: () {
+                  final c = ctrl.text.trim();
+                  if (c.isNotEmpty) {
+                    setState(() => clubName = c);
+                    _showNotice('أصبحت عضواً في نادي $c');
+                  }
+                  Navigator.of(ctx).pop();
+                },
+                child: const Text('تأكيد'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _openLeaderboardDialog(int highlightedRank) {
+    const leaders = [
+      (1, 'سلطان نجد', '18,420'),
+      (2, 'أبو فهد', '15,910'),
+      (3, 'صقر الشمال', '14,250'),
+    ];
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFFF6EBD2),
+            title: const Text('المتصدّرين'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: leaders.map((l) {
+                final active = l.$1 == highlightedRank;
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 3),
+                  decoration: BoxDecoration(
+                    color: active ? const Color(0xFFE6CF9A) : Colors.white60,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    leading: CircleAvatar(
+                      radius: 13,
+                      child: Text('${l.$1}'),
+                    ),
+                    title: Text(l.$2),
+                    trailing: Text(l.$3),
+                  ),
+                );
+              }).toList(),
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('حسناً'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _openGoldSendDialog() {
     final friendCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
@@ -197,21 +579,29 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD8B774),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Text(
-                          'سجل الإرسال',
-                          style: TextStyle(
-                            color: Color(0xFF4A2E08),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                      InkWell(
+                        onTap: () {
+                          final hist = transferHistory.isEmpty
+                              ? 'لا توجد عمليات إرسال بعد'
+                              : transferHistory.join('\n');
+                          _showNotice(hist);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD8B774),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            'سجل الإرسال',
+                            style: TextStyle(
+                              color: Color(0xFF4A2E08),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ),
@@ -286,29 +676,37 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'ميزة VIP لتقليل الرسوم: الخصم الإضافي للخصم عند الإهداء 15% : 0%',
-                    style: TextStyle(color: Color(0xFF6E4C1B), fontSize: 11),
+                  Text(
+                    isVip
+                        ? 'ميزة VIP لتقليل الرسوم: الخصم الإضافي للخصم عند الإهداء 15% : 15%'
+                        : 'ميزة VIP لتقليل الرسوم: الخصم الإضافي للخصم عند الإهداء 15% : 0%',
+                    style: const TextStyle(color: Color(0xFF6E4C1B), fontSize: 11),
                   ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD5A949),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Text(
-                          'الترقية إلى VIP',
-                          style: TextStyle(
-                            color: Color(0xFF3E2405),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11.5,
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          _openVipDialog();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD5A949),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            'الترقية إلى VIP',
+                            style: TextStyle(
+                              color: Color(0xFF3E2405),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11.5,
+                            ),
                           ),
                         ),
                       ),
@@ -318,10 +716,23 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                           foregroundColor: Colors.white,
                         ),
                         onPressed: () {
+                          final target = friendCtrl.text.trim().isEmpty
+                              ? 'صديق'
+                              : friendCtrl.text.trim();
                           final val = int.tryParse(amountCtrl.text.trim()) ?? 0;
-                          if (val > 0 && val <= goldBalance) {
-                            setState(() => goldBalance -= val);
+                          if (val <= 0) {
+                            _showNotice('أدخل عدداً صحيحاً للذهب');
+                            return;
                           }
+                          if (val > goldBalance) {
+                            _showNotice('الرصيد غير كافٍ');
+                            return;
+                          }
+                          setState(() {
+                            goldBalance -= val;
+                            transferHistory.add('أرسلت $val إلى $target');
+                          });
+                          _showNotice('تم إرسال $val ذهب إلى $target');
                           Navigator.of(ctx).pop();
                         },
                         child: const Text('تأكيد الإرسال'),
@@ -337,316 +748,8 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
     );
   }
 
-  void _openTasksDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Dialog(
-            backgroundColor: const Color(0xFFF6EBD2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-              side: const BorderSide(color: Color(0xFFC99B38), width: 2.5),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'المهام',
-                        style: TextStyle(
-                          color: Color(0xFF4A2E08),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () => Navigator.of(ctx).pop(),
-                        child: const Icon(Icons.close_rounded),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEDE0C4),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'تفاعل هذا الأسبوع: 0',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12.5,
-                              ),
-                            ),
-                            Text(
-                              'تفاعل اليوم: 0',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        _taskRow(
-                          title: 'تسجيل دخول تراكمي 1 يوم',
-                          badge: 'التفاعل 20',
-                          progress: '1/1',
-                          done: true,
-                        ),
-                        _taskRow(
-                          title: 'اختيار مشروع 100 لـ 3 مرة في جلسة',
-                          badge: 'التفاعل 40',
-                          progress: '1/1',
-                          done: true,
-                        ),
-                        _taskRow(
-                          title: 'تسجيل دخول تراكمي 5 يوم',
-                          badge: 'التفاعل 50',
-                          progress: '5/1',
-                          done: false,
-                        ),
-                        _taskRow(
-                          title: 'شحن 1 مرة',
-                          badge: 'التفاعل 60',
-                          progress: '1/0',
-                          done: false,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _taskRow({
-    required String title,
-    required String badge,
-    required String progress,
-    required bool done,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F1E1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  badge,
-                  style: const TextStyle(
-                    color: Color(0xFFD96B27),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            progress,
-            style: const TextStyle(fontSize: 11.5, color: Colors.black54),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: done ? const Color(0xFF69B347) : const Color(0xFF6AA6C8),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              done ? 'إستلام' : 'أكمل المهمة',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openFriendsDrawer() {
-    const friends = [
-      ('الزهراني', 'قبل 3 ساعة', 'متوسط'),
-      ('2409BRN2CA', 'قبل 4 ساعة', 'متوسط'),
-      ('h917', 'قبل 14 ساعة', 'متوسط'),
-      ('iPhone13,2', 'قبل 14 ساعة', 'متوسط'),
-    ];
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: const Color(0xFFF6EBD2),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'قائمة الأصدقاء • 13/20',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Color(0xFF4A2E08),
-                      ),
-                    ),
-                    Text(
-                      'متابَعيني • متابِعيني • إضافة صديق',
-                      style: TextStyle(fontSize: 11, color: Colors.black54),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ...friends.map(
-                  (f) => ListTile(
-                    dense: true,
-                    leading: const CircleAvatar(
-                      backgroundColor: Color(0xFF1D6B43),
-                      child: Icon(Icons.person, color: Colors.white),
-                    ),
-                    title: Text(
-                      f.$1,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text('${f.$2} • ${f.$3}'),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF69B347),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'إذهب للدردشة',
-                        style: TextStyle(color: Colors.white, fontSize: 11),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _openMailDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Dialog(
-            backgroundColor: const Color(0xFFF6EBD2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-              side: const BorderSide(color: Color(0xFFC99B38), width: 2.5),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'البريد — رسائل النظام',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Color(0xFF4A2E08),
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () => Navigator.of(ctx).pop(),
-                        child: const Icon(Icons.close_rounded),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'سيتم حفظ الرسالة لمدة 7 أيام',
-                    style: TextStyle(color: Colors.black54, fontSize: 12),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF69B347),
-                        ),
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text('إستلام الكل'),
-                      ),
-                      const SizedBox(width: 10),
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFD96B27),
-                        ),
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text('حذف الكل'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _openSettingsDialog() {
-    var oldSound = true;
-    var musicOn = false;
-    var sOn = true;
+  void _openBagDialog() {
+    var selectedTab = 0;
     showDialog<void>(
       context: context,
       builder: (ctx) {
@@ -661,7 +764,605 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                   side: const BorderSide(color: Color(0xFFC99B38), width: 2.5),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'الشنطة',
+                            style: TextStyle(
+                              color: Color(0xFF4A2E08),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              ChoiceChip(
+                                label: const Text('الكل'),
+                                selected: selectedTab == 0,
+                                onSelected: (_) => setD(() => selectedTab = 0),
+                              ),
+                              const SizedBox(width: 4),
+                              ChoiceChip(
+                                label: const Text('ذخيرة'),
+                                selected: selectedTab == 1,
+                                onSelected: (_) => setD(() => selectedTab = 1),
+                              ),
+                            ],
+                          ),
+                          InkWell(
+                            onTap: () => Navigator.of(ctx).pop(),
+                            child: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Container(
+                            width: 96,
+                            height: 112,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEDE0C4),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFD5A949),
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.inventory_2,
+                                  color: Color(0xFF4E8D47),
+                                  size: 40,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '$ammoCount',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'ذخيرة مجانية لحصر الصيد',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Color(0xFF4A2E08),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  'يمكن استخدامها في صيد مستوى مبتدئ والحصول على مكافأة ذهب فورية.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                FilledButton(
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: const Color(0xFF69B347),
+                                  ),
+                                  onPressed: () {
+                                    if (ammoCount > 0) {
+                                      setState(() {
+                                        ammoCount--;
+                                        goldBalance += 150;
+                                      });
+                                      setD(() {});
+                                      _showNotice(
+                                        'تم استخدام ذخيرة وحصلت على +150 ذهب',
+                                      );
+                                    } else {
+                                      _showNotice('لا توجد ذخيرة متبقية');
+                                    }
+                                  },
+                                  child: const Text('إستخدام'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openTasksDialog() {
+    var tabIndex = 0;
+    const titles = [
+      'تسجيل دخول تراكمي 1 يوم',
+      'اختيار مشروع 100 لـ 3 مرة في جلسة',
+      'تسجيل دخول تراكمي 5 يوم',
+      'شحن 1 مرة',
+    ];
+    const badges = [
+      'التفاعل 20',
+      'التفاعل 40',
+      'التفاعل 50',
+      'التفاعل 60',
+    ];
+    const rewards = [200, 300, 400, 500];
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setD) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Dialog(
+                backgroundColor: const Color(0xFFF6EBD2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: const BorderSide(color: Color(0xFFC99B38), width: 2.5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              ChoiceChip(
+                                label: const Text('مهام التفاعل'),
+                                selected: tabIndex == 0,
+                                onSelected: (_) => setD(() => tabIndex = 0),
+                              ),
+                              const SizedBox(width: 6),
+                              ChoiceChip(
+                                label: const Text('مهام النادي'),
+                                selected: tabIndex == 1,
+                                onSelected: (_) => setD(() => tabIndex = 1),
+                              ),
+                            ],
+                          ),
+                          InkWell(
+                            onTap: () => Navigator.of(ctx).pop(),
+                            child: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEDE0C4),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'تفاعل هذا الأسبوع: $weeklyInteraction',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Text(
+                                  'تفاعل اليوم: $dailyInteraction',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ...List.generate(titles.length, (i) {
+                              final canClaim = taskDone[i] && !taskClaimed[i];
+                              final label = taskClaimed[i]
+                                  ? 'تم الاستلام'
+                                  : (taskDone[i] ? 'إستلام' : 'أكمل المهمة');
+                              return InkWell(
+                                onTap: () {
+                                  if (canClaim) {
+                                    setState(() {
+                                      taskClaimed[i] = true;
+                                      goldBalance += rewards[i];
+                                      dailyInteraction += 20;
+                                      weeklyInteraction += 20;
+                                    });
+                                    setD(() {});
+                                    _showNotice(
+                                      'تم استلام +${rewards[i]} ذهب',
+                                    );
+                                  } else if (!taskDone[i]) {
+                                    setState(() {
+                                      taskDone[i] = true;
+                                    });
+                                    setD(() {});
+                                    _showNotice('تم إكمال المهمة، اضغط إستلام');
+                                  }
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF9F1E1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              tabIndex == 1
+                                                  ? '${titles[i]} (النادي)'
+                                                  : titles[i],
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            Text(
+                                              badges[i],
+                                              style: const TextStyle(
+                                                color: Color(0xFFD96B27),
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: taskClaimed[i]
+                                              ? Colors.grey
+                                              : (taskDone[i]
+                                                  ? const Color(0xFF69B347)
+                                                  : const Color(0xFF6AA6C8)),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          label,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openFriendsDrawer() {
+    var tab = 0;
+    final addCtrl = TextEditingController();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFFF6EBD2),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setM) {
+            final currentList = tab == 0
+                ? friendsList
+                : (tab == 1 ? followingList : followersList);
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 14,
+                  right: 14,
+                  top: 14,
+                  bottom: MediaQuery.of(ctx).viewInsets.bottom + 14,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        ChoiceChip(
+                          label: Text('الأصدقاء (${friendsList.length})'),
+                          selected: tab == 0,
+                          onSelected: (_) => setM(() => tab = 0),
+                        ),
+                        const SizedBox(width: 6),
+                        ChoiceChip(
+                          label: Text('متابَعيني (${followingList.length})'),
+                          selected: tab == 1,
+                          onSelected: (_) => setM(() => tab = 1),
+                        ),
+                        const SizedBox(width: 6),
+                        ChoiceChip(
+                          label: Text('متابِعيني (${followersList.length})'),
+                          selected: tab == 2,
+                          onSelected: (_) => setM(() => tab = 2),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: addCtrl,
+                            decoration: const InputDecoration(
+                              hintText: 'إضافة صديق بالاسم',
+                              isDense: true,
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: () {
+                            final name = addCtrl.text.trim();
+                            if (name.isNotEmpty) {
+                              setState(() {
+                                friendsList.insert(0, name);
+                              });
+                              setM(() {});
+                              addCtrl.clear();
+                              _showNotice('تمت إضافة $name إلى الأصدقاء');
+                            }
+                          },
+                          child: const Text('إضافة صديق'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ...currentList.map(
+                      (person) => ListTile(
+                        dense: true,
+                        leading: const CircleAvatar(
+                          backgroundColor: Color(0xFF1D6B43),
+                          child: Icon(Icons.person, color: Colors.white),
+                        ),
+                        title: Text(
+                          person,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: const Text('متوسط • متصل'),
+                        trailing: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF69B347),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                          ),
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => BalootMatchScreen(
+                                  playerName: playerName,
+                                  partnerName: person,
+                                  rightOpponentName: 'عز',
+                                  leftOpponentName: 'iPhone1..',
+                                  targetScore: 152,
+                                  roomTitle: 'جلسة مع $person',
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'إذهب للدردشة',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openMailDialog() {
+    var mailTab = 0;
+    const mailTabs = ['رسائل النظام', 'رسائل اللاعب', 'بريد الهدايا', 'الألبوم'];
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setD) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Dialog(
+                backgroundColor: const Color(0xFFF6EBD2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: const BorderSide(color: Color(0xFFC99B38), width: 2.5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'البريد — ${mailTabs[mailTab]}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: Color(0xFF4A2E08),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => Navigator.of(ctx).pop(),
+                            child: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 4,
+                        children: List.generate(
+                          mailTabs.length,
+                          (i) => ChoiceChip(
+                            label: Text(
+                              mailTabs[i],
+                              style: const TextStyle(fontSize: 10.5),
+                            ),
+                            selected: mailTab == i,
+                            onSelected: (_) => setD(() => mailTab = i),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (mailItems.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          child: Text(
+                            'لا توجد رسائل حالياً • يتم حفظ الرسالة لمدة 7 أيام',
+                            style: TextStyle(color: Colors.black54, fontSize: 12),
+                          ),
+                        )
+                      else
+                        ...mailItems.map(
+                          (m) => ListTile(
+                            dense: true,
+                            leading: const Icon(
+                              Icons.mail_outline,
+                              color: Color(0xFF4A2E08),
+                            ),
+                            title: Text(
+                              m,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF69B347),
+                            ),
+                            onPressed: () {
+                              if (mailItems.isNotEmpty) {
+                                final bonus = mailItems.length * 500;
+                                setState(() {
+                                  goldBalance += bonus;
+                                  mailItems.clear();
+                                });
+                                setD(() {});
+                                _showNotice('تم استلام +$bonus ذهب');
+                              } else {
+                                _showNotice('لا توجد جوائز للاستلام');
+                              }
+                            },
+                            child: const Text('إستلام الكل'),
+                          ),
+                          const SizedBox(width: 10),
+                          FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFFD96B27),
+                            ),
+                            onPressed: () {
+                              setState(() => mailItems.clear());
+                              setD(() {});
+                              _showNotice('تم حذف جميع الرسائل');
+                            },
+                            child: const Text('حذف الكل'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openSettingsDialog() {
+    var bottomTab = 0;
+    const bottomLabels = [
+      'تقديم',
+      'منع الحساب',
+      'تغييرات',
+      'معاينة الحساب',
+      'الكلام',
+      'الحساب رسمي',
+    ];
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setD) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Dialog(
+                backgroundColor: const Color(0xFFF6EBD2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: const BorderSide(color: Color(0xFFC99B38), width: 2.5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -682,28 +1383,59 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       SwitchListTile(
+                        dense: true,
                         title: const Text('الصوت القديم'),
                         value: oldSound,
-                        onChanged: (v) => setD(() => oldSound = v),
+                        onChanged: (v) {
+                          setState(() => oldSound = v);
+                          setD(() {});
+                        },
                       ),
                       SwitchListTile(
+                        dense: true,
                         title: const Text('موسيقى'),
                         value: musicOn,
-                        onChanged: (v) => setD(() => musicOn = v),
+                        onChanged: (v) {
+                          setState(() => musicOn = v);
+                          setD(() {});
+                        },
                       ),
                       SwitchListTile(
+                        dense: true,
                         title: const Text('ص'),
                         subtitle: const Text('يمكنك الحصول على جائزة ذهب'),
-                        value: sOn,
-                        onChanged: (v) => setD(() => sOn = v),
+                        value: sRewardOn,
+                        onChanged: (v) {
+                          setState(() => sRewardOn = v);
+                          setD(() {});
+                        },
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'تقديم • منع الحساب • تغييرات • معاينة الحساب • الكلام • الحساب رسمي',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 10.5, color: Colors.black54),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        alignment: WrapAlignment.center,
+                        children: List.generate(
+                          bottomLabels.length,
+                          (i) => ChoiceChip(
+                            label: Text(
+                              bottomLabels[i],
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                            selected: bottomTab == i,
+                            onSelected: (_) => setD(() => bottomTab = i),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${bottomLabels[bottomTab]}: الحالة نشطة وجاهزة على حساب $playerName',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF5A3B0C),
+                        ),
                       ),
                     ],
                   ),
@@ -717,60 +1449,94 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
   }
 
   void _openEventCenterDialog() {
+    const boxLabels = [
+      'صندوق الكشتة A (3500/5000)',
+      'صندوق الكشتة B (30000/60000)',
+      'صندوق الكبار (250000/500000)',
+    ];
+    const boxRewards = [250, 600, 1500];
+
     showDialog<void>(
       context: context,
       builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Dialog(
-            backgroundColor: const Color(0xFF283A4E),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-              side: const BorderSide(color: Color(0xFFD5A949), width: 2),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (ctx, setD) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Dialog(
+                backgroundColor: const Color(0xFF283A4E),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: const BorderSide(color: Color(0xFFD5A949), width: 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'مركز الأحداث — ليلة الكشتة',
-                        style: TextStyle(
-                          color: Color(0xFFF7D774),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'مركز الأحداث — ليلة الكشتة',
+                            style: TextStyle(
+                              color: Color(0xFFF7D774),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => Navigator.of(ctx).pop(),
+                            child: const Icon(
+                              Icons.close_rounded,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
                       ),
-                      InkWell(
-                        onTap: () => Navigator.of(ctx).pop(),
-                        child: const Icon(
-                          Icons.close_rounded,
-                          color: Colors.white70,
-                        ),
-                      ),
+                      const SizedBox(height: 10),
+                      ...List.generate(boxLabels.length, (i) {
+                        final claimed = kashtaClaimed[i];
+                        return ListTile(
+                          dense: true,
+                          title: Text(
+                            boxLabels[i],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                          trailing: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: claimed
+                                  ? Colors.grey
+                                  : const Color(0xFF69B347),
+                            ),
+                            onPressed: claimed
+                                ? null
+                                : () {
+                                    setState(() {
+                                      kashtaClaimed[i] = true;
+                                      goldBalance += boxRewards[i];
+                                    });
+                                    setD(() {});
+                                    _showNotice(
+                                      'تم استلام +${boxRewards[i]} ذهب من ليلة الكشتة',
+                                    );
+                                  },
+                            child: Text(
+                              claimed ? 'تم' : 'استلام +${boxRewards[i]}',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                        );
+                      }),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'الشراء التراكمي اليوم 3 • صندوق ليلة الكشتة A / B',
-                    style: TextStyle(color: Colors.white, fontSize: 12.5),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '3500 / 5000  •  30000 / 60000  •  250000 / 500000',
-                    style: TextStyle(
-                      color: Color(0xFFF7D774),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -781,18 +1547,8 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF8E6E46),
-                Color(0xFF694D2C),
-                Color(0xFF473119),
-              ],
-            ),
-          ),
+        body: CustomPaint(
+          painter: const MajlisScenePainter(),
           child: SafeArea(
             child: Column(
               children: [
@@ -826,30 +1582,34 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black45,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFD5A949)),
-            ),
-            child: const Row(
-              children: [
-                Icon(
-                  Icons.workspace_premium,
-                  color: Color(0xFFF7D774),
-                  size: 16,
-                ),
-                SizedBox(width: 4),
-                Text(
-                  'إشتراك VIP',
-                  style: TextStyle(
+          InkWell(
+            onTap: _openVipDialog,
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isVip ? const Color(0xFF5A3E0A) : Colors.black45,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFD5A949)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.workspace_premium,
                     color: Color(0xFFF7D774),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11.5,
+                    size: 16,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    isVip ? 'VIP نشط' : 'إشتراك VIP',
+                    style: const TextStyle(
+                      color: Color(0xFFF7D774),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -867,12 +1627,15 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                   size: 16,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  '$goldBalance',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                InkWell(
+                  onTap: _openGoldSendDialog,
+                  child: Text(
+                    '$goldBalance',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -887,61 +1650,96 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
               ],
             ),
           ),
-          const Spacer(),
-          Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: _openBagDialog,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black45,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4788C7),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '$playerLevel',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        playerName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
+                  const Icon(
+                    Icons.backpack,
+                    color: Color(0xFFE6B84C),
+                    size: 15,
                   ),
-                  const Text(
-                    '16514',
-                    style: TextStyle(color: Colors.white70, fontSize: 10.5),
+                  const SizedBox(width: 3),
+                  Text(
+                    'الشنطة ($ammoCount)',
+                    style: const TextStyle(color: Colors.white, fontSize: 10.5),
                   ),
                 ],
               ),
-              const SizedBox(width: 8),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2D4739),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFD5A949), width: 1.5),
+            ),
+          ),
+          const Spacer(),
+          InkWell(
+            onTap: _openProfileEditDialog,
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4788C7),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '$playerLevel',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          playerName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '$goldBalance',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10.5,
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.person, color: Colors.white),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2D4739),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFFD5A949),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(Icons.person, color: Colors.white),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -953,21 +1751,24 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
       width: 78,
       child: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF6F4E29),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFD5A949)),
-            ),
-            child: const Text(
-              'المتصدّرين',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFFF7D774),
-                fontWeight: FontWeight.bold,
-                fontSize: 11,
+          InkWell(
+            onTap: () => _openLeaderboardDialog(1),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6F4E29),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFD5A949)),
+              ),
+              child: const Text(
+                'المتصدّرين',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFF7D774),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
               ),
             ),
           ),
@@ -980,12 +1781,24 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white12),
               ),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _LeaderBadge(rankText: '1', accent: Color(0xFFFFD54F)),
-                  _LeaderBadge(rankText: '2', accent: Color(0xFFE0E0E0)),
-                  _LeaderBadge(rankText: '3', accent: Color(0xFFBCAAA4)),
+                  _LeaderBadge(
+                    rankText: '1',
+                    accent: const Color(0xFFFFD54F),
+                    onTap: () => _openLeaderboardDialog(1),
+                  ),
+                  _LeaderBadge(
+                    rankText: '2',
+                    accent: const Color(0xFFE0E0E0),
+                    onTap: () => _openLeaderboardDialog(2),
+                  ),
+                  _LeaderBadge(
+                    rankText: '3',
+                    accent: const Color(0xFFBCAAA4),
+                    onTap: () => _openLeaderboardDialog(3),
+                  ),
                 ],
               ),
             ),
@@ -999,40 +1812,51 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF9C7B53), Color(0xFF6B4F2F)],
-        ),
+        color: Colors.black26,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0x88F7D774)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 116,
-            height: 116,
-            decoration: BoxDecoration(
-              color: const Color(0xFF3E4E5E).withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFD5A949), width: 1.8),
-            ),
-            child: const Center(
-              child: Icon(Icons.add, color: Colors.white, size: 38),
+          InkWell(
+            onTap: _openClubDialog,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: 112,
+              height: 112,
+              decoration: BoxDecoration(
+                color: const Color(0xFF3E4E5E).withValues(alpha: 0.78),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFD5A949), width: 1.8),
+              ),
+              child: Center(
+                child: clubName == null
+                    ? const Icon(Icons.add, color: Colors.white, size: 38)
+                    : Text(
+                        clubName!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
             ),
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.black38,
+              color: Colors.black45,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text(
-              'لم تنضم لنادٍ بعد\nبعد الانضمام إلى النادي يمكنك الحصول على مزايا إضافية مثل فرص كنز الإخلاص',
+            child: Text(
+              clubName == null
+                  ? 'لم تنضم لنادٍ بعد\nبعد الانضمام إلى النادي يمكنك الحصول على مزايا إضافية مثل فرص كنز الإخلاص'
+                  : 'عضو في نادي: $clubName • مزايا النادي مفعّلة',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 10.5),
+              style: const TextStyle(color: Colors.white70, fontSize: 10.5),
             ),
           ),
         ],
@@ -1078,6 +1902,7 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                                 builder: (_) => MoreGamesScreen(
                                   playerName: playerName,
                                   goldBalance: goldBalance,
+                                  initialTabIndex: 0,
                                 ),
                               ),
                             );
@@ -1096,6 +1921,7 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                                 builder: (_) => MoreGamesScreen(
                                   playerName: playerName,
                                   goldBalance: goldBalance,
+                                  initialTabIndex: 3,
                                 ),
                               ),
                             );
@@ -1129,6 +1955,7 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                                 builder: (_) => MoreGamesScreen(
                                   playerName: playerName,
                                   goldBalance: goldBalance,
+                                  initialTabIndex: 2,
                                 ),
                               ),
                             );
@@ -1149,6 +1976,7 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
                   builder: (_) => MoreGamesScreen(
                     playerName: playerName,
                     goldBalance: goldBalance,
+                    initialTabIndex: 2,
                   ),
                 ),
               );
@@ -1329,37 +2157,46 @@ class _LobbyMajlisScreenState extends State<LobbyMajlisScreen> {
 class _LeaderBadge extends StatelessWidget {
   final String rankText;
   final Color accent;
+  final VoidCallback onTap;
 
-  const _LeaderBadge({required this.rankText, required this.accent});
+  const _LeaderBadge({
+    required this.rankText,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4F371D),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: accent, width: 1.3),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 10,
-            backgroundColor: accent,
-            child: Text(
-              rankText,
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 10,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF4F371D),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: accent, width: 1.3),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 10,
+              backgroundColor: accent,
+              child: Text(
+                rankText,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 4),
-          const Expanded(
-            child: Icon(Icons.person, color: Colors.white70, size: 16),
-          ),
-        ],
+            const SizedBox(width: 4),
+            const Expanded(
+              child: Icon(Icons.person, color: Colors.white70, size: 16),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1496,7 +2333,7 @@ class SakkaRoomsScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => BalootMatchScreen(
+                              builder: (_) => VsSplashScreen(
                                 playerName: playerName,
                                 partnerName: 'المحماد..',
                                 rightOpponentName: 'عز',
@@ -1607,21 +2444,23 @@ class SakkaRoomsScreen extends StatelessWidget {
 class MoreGamesScreen extends StatelessWidget {
   final String playerName;
   final int goldBalance;
+  final int initialTabIndex;
 
   const MoreGamesScreen({
     super.key,
     required this.playerName,
     required this.goldBalance,
+    this.initialTabIndex = 2,
   });
 
   @override
   Widget build(BuildContext context) {
     const items = [
-      ('الجلسات', Icons.chair_alt, Color(0xFFD99B38)),
-      ('ربح مجاناً', Icons.emoji_events, Color(0xFFC75B2A)),
-      ('سلم التحدّي', Icons.military_tech, Color(0xFFD49A2A)),
-      ('دوري المحترفين', Icons.workspace_premium, Color(0xFF3E6F9E)),
-      ('صكّة سريعة', Icons.style, Color(0xFF289A63)),
+      ('الجلسات', Icons.chair_alt, Color(0xFFD99B38), 'جلسة خاصة'),
+      ('ربح مجاناً', Icons.emoji_events, Color(0xFFC75B2A), 'ربح مجاناً'),
+      ('سلم التحدّي', Icons.military_tech, Color(0xFFD49A2A), 'سلم التحدّي'),
+      ('دوري المحترفين', Icons.workspace_premium, Color(0xFF3E6F9E), 'دوري المحترفين'),
+      ('صكّة سريعة', Icons.style, Color(0xFF289A63), 'صكّة سريعة'),
     ];
 
     return Directionality(
@@ -1658,9 +2497,9 @@ class MoreGamesScreen extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      const Text(
-                        'المزيد من الألعاب',
-                        style: TextStyle(
+                      Text(
+                        items[initialTabIndex].$1,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: Color(0xFF4A2E08),
@@ -1689,14 +2528,30 @@ class MoreGamesScreen extends StatelessWidget {
                       return InkWell(
                         borderRadius: BorderRadius.circular(18),
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => LadderChallengeScreen(
-                                playerName: playerName,
-                                goldBalance: goldBalance,
+                          if (it.$1 == 'صكّة سريعة') {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (_) => VsSplashScreen(
+                                  playerName: playerName,
+                                  partnerName: 'المحماد..',
+                                  rightOpponentName: 'عز',
+                                  leftOpponentName: 'iPhone1..',
+                                  targetScore: 152,
+                                  roomTitle: 'صكّة سريعة',
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          } else {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (_) => LadderChallengeScreen(
+                                  playerName: playerName,
+                                  goldBalance: goldBalance,
+                                  modeTitle: it.$4,
+                                ),
+                              ),
+                            );
+                          }
                         },
                         child: Container(
                           width: 112,
@@ -1751,11 +2606,13 @@ class MoreGamesScreen extends StatelessWidget {
 class LadderChallengeScreen extends StatefulWidget {
   final String playerName;
   final int goldBalance;
+  final String modeTitle;
 
   const LadderChallengeScreen({
     super.key,
     required this.playerName,
     required this.goldBalance,
+    this.modeTitle = 'سلم التحدّي',
   });
 
   @override
@@ -1781,13 +2638,13 @@ class _LadderChallengeScreenState extends State<LadderChallengeScreen> {
         setState(() => isSearching = false);
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => BalootMatchScreen(
+            builder: (_) => VsSplashScreen(
               playerName: widget.playerName,
               partnerName: 'المحماد..',
               rightOpponentName: 'عز',
               leftOpponentName: 'iPhone1..',
               targetScore: 152,
-              roomTitle: 'سلم التحدّي',
+              roomTitle: widget.modeTitle,
             ),
           ),
         );
@@ -1847,9 +2704,9 @@ class _LadderChallengeScreenState extends State<LadderChallengeScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Text(
-                        'سلم التحدّي',
-                        style: TextStyle(
+                      Text(
+                        widget.modeTitle,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
@@ -1902,26 +2759,48 @@ class _LadderChallengeScreenState extends State<LadderChallengeScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Container(
-                      width: 132,
-                      height: 152,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6B8BAE),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: const Color(0xFFF7D774),
-                          width: 2,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.shield_rounded,
-                          color: Colors.white,
-                          size: 68,
-                        ),
+                    SizedBox(
+                      width: 142,
+                      height: 158,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          if (isSearching)
+                            SizedBox(
+                              width: 138,
+                              height: 138,
+                              child: CustomPaint(
+                                painter: TimerRingPainter(
+                                  progress: (seconds % 10) / 10.0,
+                                  color: const Color(0xFFF7D774),
+                                ),
+                              ),
+                            ),
+                          Container(
+                            width: 116,
+                            height: 132,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6B8BAE),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: const Color(0xFFF7D774),
+                                width: 2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                isSearching
+                                    ? Icons.emoji_events_rounded
+                                    : Icons.shield_rounded,
+                                color: Colors.white,
+                                size: 62,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     const Text(
                       '4475/5200',
                       style: TextStyle(
@@ -1996,6 +2875,131 @@ class _LadderChallengeScreenState extends State<LadderChallengeScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class VsSplashScreen extends StatefulWidget {
+  final String playerName;
+  final String partnerName;
+  final String rightOpponentName;
+  final String leftOpponentName;
+  final int targetScore;
+  final String roomTitle;
+
+  const VsSplashScreen({
+    super.key,
+    required this.playerName,
+    required this.partnerName,
+    required this.rightOpponentName,
+    required this.leftOpponentName,
+    required this.targetScore,
+    required this.roomTitle,
+  });
+
+  @override
+  State<VsSplashScreen> createState() => _VsSplashScreenState();
+}
+
+class _VsSplashScreenState extends State<VsSplashScreen> {
+  Timer? _navTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _navTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => BalootMatchScreen(
+            playerName: widget.playerName,
+            partnerName: widget.partnerName,
+            rightOpponentName: widget.rightOpponentName,
+            leftOpponentName: widget.leftOpponentName,
+            targetScore: widget.targetScore,
+            roomTitle: widget.roomTitle,
+          ),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _navTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF1F1711),
+        body: Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFD5A949), width: 1.5),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _vsPlayerCard(widget.rightOpponentName, 'متقدم', true),
+                _vsPlayerCard(widget.leftOpponentName, 'متقدم', true),
+                const Text(
+                  'VS',
+                  style: TextStyle(
+                    color: Color(0xFFF7D774),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 30,
+                  ),
+                ),
+                _vsPlayerCard(widget.partnerName, 'متوسط', false),
+                _vsPlayerCard(widget.playerName, 'متقدم', false),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _vsPlayerCard(String name, String rankLabel, bool isOpponent) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          radius: 26,
+          backgroundColor:
+              isOpponent ? const Color(0xFF8D3B2B) : const Color(0xFF2B6E4C),
+          child: const Icon(Icons.person, color: Colors.white, size: 28),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          name,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white12,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            rankLabel,
+            style: const TextStyle(color: Color(0xFFF7D774), fontSize: 10),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -2241,6 +3245,8 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
   int turn = 1;
   int passes = 0;
   int bidRound = 1;
+  int turnSeconds = 10;
+  Timer? _turnTimer;
 
   List<List<CardItem>> hands = [[], [], [], []];
   CardItem? floorCard;
@@ -2257,6 +3263,10 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
   int hundredCount = 1;
   int fourHundredCount = 1;
 
+  String onlineRoomCode = 'BAH77';
+  String onlineStatus = 'جاهز للربط';
+  final List<ChatMessageItem> tableMessages = [];
+
   @override
   void initState() {
     super.initState();
@@ -2267,6 +3277,170 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
       widget.leftOpponentName,
     ];
     _dealRound(resetMatch: true);
+  }
+
+  @override
+  void dispose() {
+    _turnTimer?.cancel();
+    super.dispose();
+  }
+
+  void _openTableChatDialog() {
+    final msgCtrl = TextEditingController();
+    final roomCtrl = TextEditingController(text: onlineRoomCode);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setD) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: AlertDialog(
+                backgroundColor: const Color(0xFFF6EBD2),
+                title: const Text('دردشة الطاولة والغرفة'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: roomCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'رمز الغرفة',
+                                isDense: true,
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          FilledButton(
+                            onPressed: () async {
+                              try {
+                                final st = await OnlineRoomService.instance
+                                    .createOrJoinRoom(
+                                  roomCtrl.text,
+                                  widget.playerName,
+                                );
+                                final fetched = await OnlineRoomService.instance
+                                    .fetchRoomMessages(roomCtrl.text);
+                                setState(() {
+                                  onlineRoomCode =
+                                      roomCtrl.text.trim().toUpperCase();
+                                  onlineStatus = st;
+                                  if (fetched.isNotEmpty) {
+                                    tableMessages
+                                      ..clear()
+                                      ..addAll(fetched);
+                                  }
+                                });
+                                setD(() {});
+                              } catch (e) {
+                                setState(() => onlineStatus = '$e');
+                                setD(() {});
+                              }
+                            },
+                            child: const Text('ربط'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        onlineStatus,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF4A2E08),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...tableMessages.map(
+                        (m) => Align(
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white70,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${m.sender}: ${m.text}',
+                              style: const TextStyle(fontSize: 11.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: msgCtrl,
+                              decoration: const InputDecoration(
+                                hintText: 'اكتب رسالة للطاولة',
+                                isDense: true,
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          FilledButton(
+                            onPressed: () async {
+                              final txt = msgCtrl.text.trim();
+                              if (txt.isEmpty) return;
+                              final item = ChatMessageItem(
+                                sender: widget.playerName,
+                                text: txt,
+                              );
+                              setState(() {
+                                tableMessages.add(item);
+                              });
+                              _sayBubble(0, txt);
+                              msgCtrl.clear();
+                              setD(() {});
+                              await OnlineRoomService.instance.sendRoomMessage(
+                                roomCode: onlineRoomCode,
+                                sender: widget.playerName,
+                                text: txt,
+                                isQuickCall: false,
+                              );
+                            },
+                            child: const Text('إرسال'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('إغلاق'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _startTurnClock() {
+    _turnTimer?.cancel();
+    turnSeconds = 10;
+    _turnTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      if (turnSeconds > 1) {
+        setState(() => turnSeconds--);
+      } else {
+        setState(() => turnSeconds = 10);
+      }
+    });
   }
 
   void _sayBubble(int seat, String text) {
@@ -2320,6 +3494,7 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
         return sc != 0 ? sc : a.rank.index.compareTo(b.rank.index);
       });
     }
+    _startTurnClock();
     setState(() {});
     if (turn != 0) _scheduleBot();
   }
@@ -2364,6 +3539,7 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
     phase = MatchPhase.playing;
     trick = [];
     turn = (dealerSeat + 1) % 4;
+    _startTurnClock();
     _sayBubble(seat, label);
     setState(() {});
     if (turn != 0) _scheduleBot();
@@ -2377,6 +3553,7 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
         bidRound = 2;
         passes = 0;
         turn = (dealerSeat + 1) % 4;
+        _startTurnClock();
         setState(() {});
         if (turn != 0) _scheduleBot();
       } else {
@@ -2387,6 +3564,7 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
       return;
     }
     turn = (turn + 1) % 4;
+    _startTurnClock();
     setState(() {});
     if (turn != 0) _scheduleBot();
   }
@@ -2422,6 +3600,7 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
 
     if (trick.length < 4) {
       turn = (turn + 1) % 4;
+      _startTurnClock();
       setState(() {});
       if (turn != 0) _scheduleBot();
       return;
@@ -2476,6 +3655,7 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
         setState(() {});
       } else {
         turn = win.$1;
+        _startTurnClock();
         setState(() {});
         if (turn != 0) _scheduleBot();
       }
@@ -2557,7 +3737,7 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
                                   color: Colors.white,
                                   size: 16,
                                 ),
-                                onPressed: () => _sayBubble(0, 'كفو'),
+                                onPressed: _openTableChatDialog,
                               ),
                             ),
                           ],
@@ -2725,16 +3905,48 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
 
   Widget _avatarCircle(int seat) {
     final isDealer = dealerSeat == seat;
+    final isTurn = turn == seat;
     return Stack(
       clipBehavior: Clip.none,
+      alignment: Alignment.center,
       children: [
-        CircleAvatar(
-          radius: 22,
-          backgroundColor: turn == seat
-              ? const Color(0xFFE6B84C)
-              : const Color(0xFF2B4C3B),
-          child: const Icon(Icons.person, color: Colors.white, size: 24),
+        SizedBox(
+          width: 52,
+          height: 52,
+          child: isTurn
+              ? CustomPaint(
+                  painter: TimerRingPainter(
+                    progress: turnSeconds / 10.0,
+                    color: const Color(0xFF4CAF50),
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
+        CircleAvatar(
+          radius: 21,
+          backgroundColor:
+              isTurn ? const Color(0xFFE6B84C) : const Color(0xFF2B4C3B),
+          child: const Icon(Icons.person, color: Colors.white, size: 23),
+        ),
+        if (isTurn)
+          Positioned(
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(
+                color: const Color(0xFF388E3C),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${turnSeconds}s',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
         if (isDealer)
           Positioned(
             right: -6,
@@ -2894,22 +4106,34 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _projChip('سرا | $seraCount', () {
-            setState(() => seraCount++);
+            setState(() {
+              seraCount++;
+              usRoundPts += 2;
+            });
             _sayBubble(0, 'سرا');
           }),
           const SizedBox(width: 6),
           _projChip('50 | $fiftyCount', () {
-            setState(() => fiftyCount++);
+            setState(() {
+              fiftyCount++;
+              usRoundPts += 5;
+            });
             _sayBubble(0, 'خمسين');
           }),
           const SizedBox(width: 6),
           _projChip('100 | $hundredCount', () {
-            setState(() => hundredCount++);
+            setState(() {
+              hundredCount++;
+              usRoundPts += 10;
+            });
             _sayBubble(0, 'مئة');
           }),
           const SizedBox(width: 6),
           _projChip('400 | $fourHundredCount', () {
-            setState(() => fourHundredCount++);
+            setState(() {
+              fourHundredCount++;
+              usRoundPts += 40;
+            });
             _sayBubble(0, 'أربعمئة');
           }),
         ],
@@ -2966,25 +4190,40 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
   Widget _buildBottomHand(List<CardItem> legal) {
     final myHand = hands[0];
     final canPlay = phase == MatchPhase.playing && turn == 0 && !busy;
+    final count = myHand.length;
+    final mid = (count - 1) / 2.0;
+    final totalW = max(180.0, (count * 34.0) + 28.0);
 
     return SizedBox(
-      height: 82,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: myHand.map((c) {
-            final ok = !canPlay || legal.contains(c);
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: _playingCardWidget(
-                c,
-                small: false,
-                dimmed: !ok,
-                onTap: canPlay && ok ? () => _playCard(0, c) : null,
-              ),
-            );
-          }).toList(),
+      height: 86,
+      child: Center(
+        child: SizedBox(
+          width: totalW,
+          height: 84,
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: List.generate(count, (i) {
+              final c = myHand[i];
+              final ok = !canPlay || legal.contains(c);
+              final offsetIdx = i - mid;
+              final angle = offsetIdx * 0.045;
+              final dy = offsetIdx.abs() * 2.2;
+              final dx = offsetIdx * 31.0;
+
+              return Transform.translate(
+                offset: Offset(dx, dy),
+                child: Transform.rotate(
+                  angle: angle,
+                  child: _playingCardWidget(
+                    c,
+                    small: false,
+                    dimmed: !ok,
+                    onTap: canPlay && ok ? () => _playCard(0, c) : null,
+                  ),
+                ),
+              );
+            }),
+          ),
         ),
       ),
     );
@@ -3067,9 +4306,3 @@ class _BalootMatchScreenState extends State<BalootMatchScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
